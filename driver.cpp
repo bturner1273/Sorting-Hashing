@@ -1,49 +1,98 @@
 #include <iostream>
 #include <cstdlib>
+#include <ctime>
+#include <math.h>
 using namespace std;
 
 
-void printArray(long long* arr, long long n);
+void printArray(long long* arr, int n);
 long long* initRandomArray();
 long long* copyArray(long long* arr);
-void heapSort(long long arr[], long long n);
-void heapify(long long arr[], long long n, long long i);
+void heapSort(long long a[], int size);
+void heapify(long long a[], int size, int root);
 int partition(long long arr[], int l, int h);
 void quickSort(long long arr[], int l, int h);
-int size  = 5000;
+long double mean(long long arr[], int size);
+long double stdev(long long a[], int size);
 
+int size  = 5000;
+long long qsCount, hsCount, qsData[30], hsData[30];
 
 int main(){
+    //Final Driver
 
-
-
-//TESTING  
-    long long* a = initRandomArray();
-    quickSort(a,0,size-1);
-    //heapSort(a,size);
-    printArray(a,size);
-
-
-
-
-    // heapSort test
-
-    // long long arr[] = {12, 11, 13, 5, 6, 7};
-    // long long n = sizeof(arr)/sizeof(arr[0]);
-    // heapSort(arr, n);
-    // prlong longArray(arr, n);
-
-    // quickSort test
-
-    // long long arr1[] = {10, 7, 8, 9, 1, 5};
-    // long long n1 = sizeof(arr1)/sizeof(arr1[0]);
-    // quickSort(arr1, 0, n1-1);
-    // prlong longArray(arr1, n1);
+    srand(time(NULL));
+    for(int i = 0; i < 30; i++){
+        long long *arr = initRandomArray();
+        long long *arrCopy = copyArray(arr);
+        quickSort(arr,0,size-1);
+        heapSort(arrCopy,size);
+        qsData[i] = qsCount;
+        hsData[i] = hsCount;
+        qsCount = 0;
+        hsCount = 0;
+    }    
+    quickSort(qsData,0,29);
+    quickSort(hsData,0,29); //finally before computing averaging data
+                            //we will quickSort both the hsData comparison set
+                            //and the qsData comparison set because we have found
+                            //that quickSort is generally faster
+    cout << "For HeapSort the number of comparisons in each case were:" << endl;
+    printArray(hsData,30);
+    cout << "The minimum number of comparisons that took place in HeapSort was: " << hsData[0] << endl;
+    cout << "The maximum number of comparisons that took place in HeapSort was: " << hsData[29] << endl;
+    cout << "The average number of comparisons that took place in HeapSort was: " << mean(hsData,30) << endl;
+    cout << "The median number of comparisons that took place in HeapSort was: " << hsData[14] << endl;
+    cout << "The standard deviation for the number of comparisons in HeapSort was: " << stdev(hsData,30) << endl;
+    cout << endl << endl;
+    cout << "For QuickSort the number of comparisons in each case were:" << endl;
+    printArray(qsData,30);
+    cout << "The minimum number of comparisons that took place in QuickSort was: " << qsData[0] << endl;
+    cout << "The maximum number of comparisons that took place in QuickSort was: " << qsData[29] << endl;
+    cout << "The average number of comparisons that took place in QuickSort was: " << mean(qsData,30) << endl;
+    cout << "The median number of comparisons that took place in QuickSort was: " << qsData[14] << endl;
+    cout << "The standard deviation for the number of comparisons in QuickSort was: " << stdev(qsData,30) << endl;
     
+//TESTING 
+// MEAN TEST WORKS
+    // long long arr[] = {1,2,3,4,5};
+    // cout << mean(arr,5) << endl;
+
+// HEAPSORT TEST WORKS 
+    // long long *arr = initRandomArray();
+    // heapSort(arr,size);
+    // printArray(arr,size);
+    // cout << endl << endl << "HEAPSORT^" << endl;
+    // cout << "hsCount = " << hsCount << endl;
+// QUICKSORT TEST WORKS
+    // long long *arr = initRandomArray();
+    // quickSort(arr,0,size-1);
+    // printArray(arr,size);
+    // cout << endl << endl << "QUICKSORT^" << endl;
+    // cout << "qsCount = " << qsCount << endl;
     
     
     return 0;
 }
+
+long double mean(long long arr[], int size){
+    long double sum = 0;
+    for(int i = 0; i < size; i++){
+        sum  += arr[i];
+    }
+    return (long double)sum/size;
+}
+
+long double stdev(long long a[], int size) {
+	double standardDev = 0.0;
+	long long sum = 0;
+	long double tempMean = mean(a,size);
+	for (int i = 0; i < size; i++) {
+		standardDev += pow(a[i] - tempMean, 2);
+	}
+	return (long double)sqrt((standardDev / size));
+}
+
 
 //quick sort uses a pivot and this function is used
 //by quick sort to do all the shifting around the pivot
@@ -64,7 +113,8 @@ int partition(long long arr[], int l, int h){
         //isn't being overwritten in later states,
         //then we want to swap the elements so that 
         //we know the array element previously stored
-        //at j is now indexed to the left of the pivot 
+        //at j is now indexed to the left of the pivot
+        qsCount+=2; //one comparison for j<=h-1 one for arr[j] <= pivot
         if(arr[j] <= pivot){
             i++;
             swap(arr[i], arr[j]);
@@ -79,58 +129,56 @@ int partition(long long arr[], int l, int h){
 //after partitioning every time
 void quickSort(long long arr[], int l, int h){
     if(l < h){
+        qsCount++; //one comparison to see if low < high
         int partitionIndex = partition(arr,l,h);
         quickSort(arr,l,partitionIndex-1);
         quickSort(arr,partitionIndex+1, h);
     }
 }
 
-//heapsort basically just heapifies all subtrees of the array
-//by taking one element at a time, reinserting as the root and 
-//re-heapifying the array
-void heapSort(long long arr[], int n){
-    //build heap
-    for(long long i=n/2-1; i >= 0; i--){
-        heapify(arr,n,i);
-    }
-
-    //swap the root with the last element of the heap 
-    //and re-heapify for every element
-    //to make sure heap is sorted
-    for(long long i=n-1; i>=0; i--){
-        swap(arr[0],arr[i]); //swap root for last element
-        heapify(arr,i,0); //reheapify
-    }
-}
-
 //heapify an array, i.e. find largest element and 
 //add it as the root node
-void heapify(long long arr[], long long n, long long i){
-    long long l = i;    //initialize largest (l) element in subheap as root
-    long long leftChild = 2*i+1;  //left child is its parents position*2 + 1
-    long long rightChild = 2*i+2; //right child is its parents position*2 + 2
-
+void heapify(long long a[], int size, int root) {
+	int tempRoot = root;//initialize largest (l) element in subheap as root
+	int leftChild = 2 * tempRoot + 1; //left child is its parents position*2 + 1
+	int rightChild = 2 * tempRoot + 2;//right child is its parents position*2 + 2
+    hsCount++; //from the for loop comparison to call heapify in heapSort
     //finding largest element 
     //check if left child is greater than root
-    if(leftChild < n /*make sure we are in the array*/ && arr[leftChild] > arr[l]){
-        l = leftChild;
-    }
-
+	if ((leftChild < size) /*make sure we are in the array*/ && (a[leftChild] > a[tempRoot])) tempRoot = leftChild;
+    hsCount++;
     //check if right child is greater than 
     //max(largest,leftChild)
-    if(rightChild < n && arr[rightChild] > arr[l]){
-        l = rightChild;
-    }
-
+	if ((rightChild < size) && (a[rightChild] > a[tempRoot])) tempRoot = rightChild;
+    hsCount++;
     //now we have figured out the largest of the root
     //node and its right and left child so we need to swap
     //the current root data with arr[l]
     //(unless given root was already the largest)
-    if(l != i){
-        swap(arr[i], arr[l]);
-        heapify(arr,i,0); //recall on heap
-    }
+    hsCount++;
+	if (tempRoot != root) {
+		unsigned long long temp = a[root];
+		a[root] = a[tempRoot];
+		a[tempRoot] = temp;
+		heapify(a, size, tempRoot);//recall on sub-heap
+	}
 }
+
+//heapsort basically just heapifies all subtrees of the array
+//by taking one element at a time, reinserting as the root and 
+//re-heapifying the array
+void heapSort(long long a[], int size) {
+	//build heap
+    for (int i = size / 2; i >= 0; i--) heapify(a, size, i);
+    //swap the root with the last element of the heap 
+        //and re-heapify for every element
+        //to make sure heap is sorted
+	for (int i = size - 1; i >= 0; i--) {
+	    swap(a[0],a[i]);
+		heapify(a, i, 0);
+	}
+}
+
 
 //swap two elements of an array
 void swap(long long e1, long long e2){
@@ -140,9 +188,9 @@ void swap(long long e1, long long e2){
 }
 
 
-//prlong longs specified array
-void printArray(long long* arr, long long n){
-    for(long long i = 0; i < n; i++){
+//prints specified array
+void printArray(long long* arr, int n){
+    for(int i = 0; i < n; i++){
         if(i == 0){
             cout << "[" << arr[i] << ", ";
         }else if(i != n-1){
@@ -154,12 +202,12 @@ void printArray(long long* arr, long long n){
     cout << "]" << endl;
 }
 
-//returns a random array containing 5000 long longegers
+//returns a random array containing 5000 long longs
 //between zero and one million
 long long* initRandomArray(){
     long long* arr = new long long[size];
-    for(long long i = 0; i < size; i++){
-        arr[i] = (long long)(rand()%1000000);
+    for(int i = 0; i < size; i++){
+        arr[i] = (long long)(rand()%1000001);
     }
     return arr;
 }
@@ -167,7 +215,7 @@ long long* initRandomArray(){
 //returns deep copy of array
 long long* copyArray(long long* arr){
     long long* copy = new long long[size];
-    for(long long i = 0; i < size; i++){
+    for(int i = 0; i < size; i++){
         copy[i] = arr[i];
     }
     return copy;
