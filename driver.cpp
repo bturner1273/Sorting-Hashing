@@ -19,8 +19,8 @@ int size  = 5000;
 long long qsCount, hsCount, qsData[30], hsData[30];
 
 int main(){
-    //Final Driver
-
+//Final Driver
+    //driving sorting/searching statistics
     srand(time(NULL));
     for(int i = 0; i < 30; i++){
         long long *arr = initRandomArray();
@@ -53,6 +53,10 @@ int main(){
     cout << "The median number of comparisons that took place in QuickSort was: " << qsData[14] << endl;
     cout << "The standard deviation for the number of comparisons in QuickSort was: " << stdev(qsData,30) << endl;
     
+    //driving Hash Table
+
+
+
 //TESTING 
 // MEAN TEST WORKS
     // long long arr[] = {1,2,3,4,5};
@@ -207,7 +211,7 @@ void printArray(long long* arr, int n){
 long long* initRandomArray(){
     long long* arr = new long long[size];
     for(int i = 0; i < size; i++){
-        arr[i] = (long long)(rand()%1000001);
+        arr[i] = (long long)(rand()%1000000);
     }
     return arr;
 }
