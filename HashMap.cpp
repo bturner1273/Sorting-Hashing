@@ -4,15 +4,17 @@ using namespace std;
 
 HashMap :: HashMap(){
     //initialize table as an array of HashNode pointers
-    table = new HashNode*[size];
+    table = new HashNode*[SIZE];
     //initialize all HashNodes in table to NULL
-    for(int i = 0; i < size; i++){
+    for(int i = 0; i < SIZE; i++){
         table[i] = NULL;
     }
+    collisions = 0;
+    comparisons = 0;
 }
 
 long long HashMap :: get(int key){
-    int hash = key%size;
+    int hash = key%SIZE;
     //if the specified key does not exist we return -1
     if(table[hash] == NULL){
         return -1;
@@ -31,15 +33,17 @@ long long HashMap :: get(int key){
 }
 
 void HashMap :: put(int key, long long value){
-    int hash = key%size;
+    int hash = key%SIZE;
     if(table[hash] == NULL){
         table[hash] = new HashNode(key,value);
     }else{
         HashNode *entry = table[hash]; //set entry to point to the head of the chain
         while(entry->next != NULL){
             entry = entry->getNext();
+            collisions++; //collisions every link we hit in the chain
         }
         if(entry->getKey() == key){
+            collisions++; //collision if the same key occurs twice
             entry->setValue(value);
         }else{
             entry->setNext(new HashNode(key, value));
@@ -52,7 +56,7 @@ void HashMap :: put(int key, long long value){
 }
 
 void HashMap :: remove(int key){
-    int hash = key%size;
+    int hash = key%SIZE;
     //can't remove from an empty chain
     if(table[hash] != NULL){
         HashNode *prev = NULL;
@@ -77,7 +81,7 @@ void HashMap :: remove(int key){
 }
 
 HashMap :: ~HashMap(){
-    for(int i = 0; i < size; i++){
+    for(int i = 0; i < SIZE; i++){
         if(table[i] != NULL){   
             HashNode* prev = NULL;
             HashNode* current = table[i];
@@ -95,12 +99,14 @@ HashMap :: ~HashMap(){
 void HashMap :: sortedInsert(HashNode **head_ref, HashNode *new_node){
     HashNode *current;
     if (*head_ref == NULL || (*head_ref)->key <= new_node->key){
+        comparisons+=2;
         new_node->next = *head_ref;
         *head_ref = new_node;
     }
     else{
         current = *head_ref;
         while (current->next!=NULL && current->next->key > new_node->key){
+            comparisons += 2;
             current = current->next;
         }
         new_node->next = current->next;
@@ -113,6 +119,7 @@ void HashMap :: insertionSort(HashNode **headRef){
     HashNode *current = *headRef;
     while (current != NULL)
     {
+        comparisons++;//for current != null
         HashNode *next = current->next;
         sortedInsert(&sorted, current);
         current = next;

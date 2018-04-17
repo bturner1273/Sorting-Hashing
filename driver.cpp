@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <math.h>
+#include "HashMap.cpp"
 using namespace std;
 
 
@@ -54,8 +55,25 @@ int main(){
     cout << "The standard deviation for the number of comparisons in QuickSort was: " << stdev(qsData,30) << endl;
     
     //driving Hash Table
-
-
+    long long colData[10];
+    long long compData[10];
+    for(int i = 0; i < 10; i++){
+        HashMap *hashMap = new HashMap();
+        long long *elements = initRandomArray();
+        for(int j = 0; j < size; j++){
+            hashMap->put(j, elements[j]);
+        }
+        colData[i] = hashMap->collisions;
+        compData[i] = hashMap->comparisons;
+    }
+    quickSort(colData,0,9);
+    quickSort(compData,0,9);
+    cout << endl << endl;
+    cout << "HashMap statistics: " << endl;
+    cout << "Comparison average: " << mean(compData,10) << endl;
+    cout << "Collision average: " << mean(colData,10) << endl;
+    
+    
 
 //TESTING 
 // MEAN TEST WORKS
